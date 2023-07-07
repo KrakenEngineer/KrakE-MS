@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b74f874a04879e941aa56342f9885f49, type: 3}
+  m_Name: ChemicalEngineT1
+  m_EditorClassIdentifier: 
+  Name: ChemicalEngineT1
+  Description: 
+  CenterOfMass:
+    _position: {x: 0.5, y: 0.5}
+    _mass: 1
+  Sprite: {fileID: 21300000, guid: 7b82d6d3a06af5046a4dd44876240c0c, type: 3}
+  Collider:
+    Config: {fileID: 0}
+    Type: 1
+    Size: {x: 1, y: 1}
+    Radius: 0
+  MainExtension:
+    Config: {fileID: 0}
+    Type: 4
+    Category: 2
+    StartHealth: 10
+    ImpactHealth: 4
+    MinThurst: 0
+    MaxThurst: 0
+    ExhaustLengthMultiplier: 0
+    CurrentThurst: 0
+    ThurstPosition: {x: 0, y: 0}
+    MinTorque: 0
+    MaxTorque: 0
+    CurrentTorque: 0
+    StartItem:
+      Amount: 0
+      ID: 
+    Stack: 0
+  Extensions:
+  - Config: {fileID: 11400000}
+    Type: 2
+    Category: 2
+    StartHealth: 0
+    ImpactHealth: 0
+    MinThurst: 10
+    MaxThurst: 75
+    ExhaustLengthMultiplier: 2
+    CurrentThurst: 30
+    ThurstPosition: {x: 0, y: 0}
+    MinTorque: 0
+    MaxTorque: 0
+    CurrentTorque: 0
+    StartItem:
+      Amount: 0
+      ID: 
+    Stack: 0
