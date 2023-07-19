@@ -11,21 +11,9 @@ namespace MSEngine.Spaceships
         private Vector2Int _size;
         private CenterOfMass _centerOfMass;
 
-        private PartField _partField;
         private List<ShipPart> _parts;
-
-        private Queue<ShipPart> _partsToDestroy;
-        
-        public Spaceship(PartField field)
-        {
-            _partField = new PartField(field);
-            _parts = field.Parts.Cast<ShipPart>().Where(part => part != null).Distinct().ToList();
-            _size = field.Size;
-        }
-
         public Spaceship(List<ShipPart> parts, Vector2Int size)
         {
-            _partField = new PartField(_size);
             _size = size;
             _parts = new List<ShipPart>();
             foreach (var part in parts)
@@ -49,9 +37,6 @@ namespace MSEngine.Spaceships
             Vector2 force = new Vector2(movement.x, movement.y);
             Rigidbody.AddRelativeForce(force);
             Rigidbody.AddTorque(-movement.z * Mathf.Deg2Rad);
-
-            if (_partsToDestroy.Count > 0)
-                DestroyPartsInQueue();
         }
 
         public bool Contains(ShipPart part) => _parts.Contains(part);
@@ -63,7 +48,6 @@ namespace MSEngine.Spaceships
         public Rigidbody2D Rigidbody => GetComponent<Rigidbody2D>();
 
         public List<ShipPart> Parts => new List<ShipPart>(_parts);
-        public Queue<ShipPart> PartsToDestroy => new Queue<ShipPart>(_partsToDestroy);
 
         public void ConfigueRigidbody(Vector2 velocity, float angularVelocity)
         {
@@ -74,15 +58,8 @@ namespace MSEngine.Spaceships
             Rigidbody.angularVelocity = angularVelocity;
         }
 
-        public void Destroy(ShipPart part)
-        {
-            if (part != null && !_parts.Contains(part))
-                _partsToDestroy.Enqueue(part);
-        }
-
         public void Initialize(float rotation, Vector2 position, Vector2Int size, CenterOfMass centerOfMass, Transform parent, List<ShipPart> parts)
         {
-            _partField = new PartField(size);
             _parts = new List<ShipPart>();
             foreach (var part in parts)
                 TryAdd(part);
@@ -91,13 +68,11 @@ namespace MSEngine.Spaceships
             _centerOfMass = centerOfMass;
             SetParent(parent);
             Translate(position, rotation);
-
-            _partsToDestroy = new Queue<ShipPart>();
         }
 
         public bool TryAdd(ShipPart part)
         {
-            var canAdd = _partField.TryRelease(part, null) && CanAdd(part);
+            var canAdd = CanAdd(part);
             if (canAdd) _parts.Add(part);
             return canAdd;
         }
@@ -105,49 +80,8 @@ namespace MSEngine.Spaceships
         public bool TryRemove(ShipPart part)
         {
             bool canRemove = CanRemove(part);
-
-            if (canRemove)
-            {
-                _partField.Pick(part);
-                _parts.Remove(part);
-            }
-
+            if (canRemove) _parts.Remove(part);
             return canRemove;
-        }
-
-        private void DestroyPartsInQueue()
-        {
-            while (_partsToDestroy.Count > 0)
-            {
-                if (TryRemove(_partsToDestroy.Peek()))
-                    Destroy(_partsToDestroy.Dequeue());
-                else _partsToDestroy.Dequeue();
-            }
-
-            List<PartGraph> components = new PartGraph(_parts).Split();
-            if (components.Count > 1)
-                Split(components);
-        }
-
-        private void Split(List<PartGraph> components)
-        {
-            foreach (var component in components)
-                CreateComponent(component, Rigidbody);
-
-            Destroy(gameObject);
-        }
-
-        private void CreateComponent(PartGraph graph, Rigidbody2D original)
-        {
-            var ship = new GameObject(name);
-            List<ShipPart> parts = graph.Parts;
-            ship.AddComponent<Rigidbody2D>();
-
-            var cShip = ship.AddComponent<Spaceship>();
-            cShip.Initialize(0, Position, _size, _centerOfMass, transform.parent, parts);
-            cShip.ConfigueRigidbody(original.velocity, original.angularVelocity);
-            foreach (var part in parts)
-                part.SetShip(cShip);
         }
 
         private void SetParent(Transform parent) => transform.parent = parent;

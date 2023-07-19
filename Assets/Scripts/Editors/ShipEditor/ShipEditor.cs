@@ -68,13 +68,13 @@ namespace MSEngine.Scenes.Editors
         {
             data.Load(ShipLoadMode.Editor, transform, out List<ShipPart> s_parts);
 
-            var parts = new List<ShipPart>();
+            var placedParts = new List<ShipPart>();
             foreach (var part in s_parts)
-                _field.TryRelease(parts[parts.Count - 1], this);
+                if (_field.TryRelease(part, this))
+                    placedParts.Add(part);
 
-            foreach (var part in parts)
-                if (part != null)
-                    part.GenerateNeighboursList(_field);
+            foreach (var part in placedParts)
+                part.GenerateNeighboursList(_field);
         }
 
         internal GameObject CreatePart(ObjectConfig config)

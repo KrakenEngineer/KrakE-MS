@@ -6,7 +6,7 @@ using System;
 
 namespace MSEngine.Spaceships
 {
-    public sealed class ShipPart : MonoBehaviour, IDamagable
+    public sealed class ShipPart : MonoBehaviour
     {
         [SerializeField] private PartOrientation _orientation;
         [SerializeField] private CenterOfMass _centerOfMass;
@@ -18,7 +18,6 @@ namespace MSEngine.Spaceships
         [SerializeField] private bool _placed = false;
 
         private List<ShipPart> _neighbors;
-        private readonly int _maxHealth;
 
         #region Properties
         public ObjectConfig Config { get; private set; }
@@ -53,40 +52,11 @@ namespace MSEngine.Spaceships
         }
         #endregion
 
-        #region IDamagable
-        public void Destroy() => Ship.Destroy(this);
-
-        public void Heal(int health)
-        {
-            if (health < 0)
-                throw new Exception("Negative amount of hp for IDamagable healing");
-
-            _health = Mathf.Clamp(_health + health, Constants.MinHealth, _maxHealth);
-        }
-
-        public void Damage(int health)
-        {
-            if (health < 0)
-                throw new Exception("Negative amount of hp for IDamagable damaging");
-
-            _health -= health;
-            if (_health < Constants.MinHealth)
-                OnDestroy();
-        }
-
-        public void OnCollisionEnter2D(Collision2D collision)
-        {
-            float relativeVelocity = collision.relativeVelocity.magnitude;
-            float damage = relativeVelocity * ShipConstants.CollisionDamageMultiplier;
-            Damage(Mathf.CeilToInt(damage));
-        }
-        #endregion
-
         #region For external using
         public void UpdatePart()
         {
             if (Placed)
-                _neighbors = _neighbors.Where(neighbour => neighbour != null).ToList(); ;
+                _neighbors = _neighbors.Where(neighbour => neighbour != null).ToList();
         }
 
         public void Pick()

@@ -237,7 +237,7 @@ namespace MSEngine
 
     public interface IDamagable
     {
-        public void Destroy();
+        public void Break();
         public void Heal(int health);
         public void Damage(int health);
         public void OnCollisionEnter2D(Collision2D collision);
