@@ -1,6 +1,7 @@
 using UnityEngine;
 using MSEngine.Saves.Configs;
 using MSEngine.Scenes.Editors;
+using MSEngine.Scenes;
 
 namespace MSEngine.UI
 {
@@ -28,6 +29,11 @@ namespace MSEngine.UI
         public void FlipPartsY()
         {
             transform.parent.parent.parent.GetComponent<ShipEditor>().UI.FlipPartsY();
+        }
+
+        public void LoadEditor()
+        {
+            Scene.LoadShipEditor();
         }
     }
 }

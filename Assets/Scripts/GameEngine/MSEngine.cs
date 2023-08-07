@@ -304,8 +304,8 @@ namespace MSEngine
 
             public static readonly Dictionary<SceneAssigment, int> SceneNumbers = new Dictionary<SceneAssigment, int>
             {
-                { SceneAssigment.MainTest, 0 },
-                { SceneAssigment.ShipEditor, 1 }
+                { SceneAssigment.MainTest, 1 },
+                { SceneAssigment.ShipEditor, 0 }
             };
         }
 

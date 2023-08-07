@@ -72,6 +72,7 @@
     <Compile Include="Assets\Scripts\Ship\Interfaces.cs" />
     <Compile Include="Assets\Scripts\GameEngine\InputPresets.cs" />
     <Compile Include="Assets\Scripts\Parts\PartCategories.cs" />
+    <Compile Include="Assets\Scripts\UI\PositionWriter.cs" />
     <Compile Include="Assets\Scripts\Parts\Types\Factories\ResourceComponent.cs" />
     <Compile Include="Assets\Scripts\Parts\Types\Movement\PartEngine.cs" />
     <Compile Include="Assets\Scripts\Ship\Spaceship.cs" />
