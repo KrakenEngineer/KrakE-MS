@@ -16,6 +16,8 @@ namespace MSEngine.Saves.Configs
         Control,
         Storages,
         Engines,
+        Generators,
+        Struct,
         Count
     }
 }

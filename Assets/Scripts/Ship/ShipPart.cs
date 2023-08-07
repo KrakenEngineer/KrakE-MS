@@ -2,12 +2,14 @@ using UnityEngine;
 using MSEngine.Saves.Configs;
 using System.Collections.Generic;
 using System.Linq;
-using System;
+using MSEngine.Utility;
 
 namespace MSEngine.Spaceships
 {
-    public sealed class ShipPart : MonoBehaviour
+    [RequireComponent(typeof(ResourceComponent))]
+    public sealed class ShipPart : MonoBehaviour, IShipPartBehaviour
     {
+        //readonly
         [SerializeField] private PartOrientation _orientation;
         [SerializeField] private CenterOfMass _centerOfMass;
         [SerializeField] private Vector2Int _start;
@@ -17,19 +19,21 @@ namespace MSEngine.Spaceships
         [SerializeField] private bool _oriented = false;
         [SerializeField] private bool _placed = false;
 
-        private List<ShipPart> _neighbors;
+        [SerializeField] private List<ShipPart> _neighbors;
 
         #region Properties
         public ObjectConfig Config { get; private set; }
         public Spaceship Ship { get; private set; }
+        public ShipPart PartComponent => this;
+        public ResourceComponent ResourceComponent => GetComponent<ResourceComponent>();
         public List<ShipPart> Neighbors => new List<ShipPart>(_neighbors);
 
         public PartOrientation Orientation => _orientation;
         public CenterOfMass CenterOfMass => _centerOfMass;
         public Vector2Int Start => _start;
         public Vector2Int End => _end;
-        
-        public int _health { get; private set; }
+
+        public List<ResourceSystemID> ResourceSystems => ResourceComponent.ResourceSystems;
         public bool Placed => _placed;
 
         public Vector3 GetExactScale()
@@ -43,7 +47,7 @@ namespace MSEngine.Spaceships
         public Vector3 GetMovement(CenterOfMass centerOfMass, List<KeyAssignment> keys)
         {
             var movement = Vector3.zero;
-            var moveComponents = new List<MovingPart>(GetComponents<MovingPart>());
+            var moveComponents = GetComponents<MovingPart>();
 
             foreach (var component in moveComponents)
                 movement += component.GetMovement(centerOfMass, keys);
@@ -65,7 +69,7 @@ namespace MSEngine.Spaceships
                 throw new System.Exception("Can't pick this part because it isn't placed");
 
             foreach (var part in Neighbors)
-                part.Neighbors.Remove(this);
+                part._neighbors.Remove(this);
 
             _neighbors = null;
             _placed = false;
@@ -86,7 +90,7 @@ namespace MSEngine.Spaceships
 
             GenerateNeighboursList(field);
             foreach (var part in Neighbors)
-                part.Neighbors.Add(this);
+                part._neighbors.Add(this);
         }
 
         public void Initialize(ObjectConfig config)
@@ -96,13 +100,14 @@ namespace MSEngine.Spaceships
             if (config == null || config.Type != ConfigExtensionType.Part)
                 throw new System.Exception("Invalid config for part initialization");
 
+            GetComponent<ResourceComponent>().Initialize(new List<ResourceSystemID>());
+            
             Config = config;
             _centerOfMass = config.CenterOfMass;
-            _health = Config.MainExtension.StartHealth;
             _initialized = true;
         }
 
-        public void Orient(PartOrientation orientation)
+        public void Orient(Vector2Int start, Vector2Int end, PartOrientation orientation)
         {
             if (_oriented)
                 throw new System.Exception("Can't orient this part because it is oriented");
@@ -113,9 +118,14 @@ namespace MSEngine.Spaceships
             transform.eulerAngles = new Vector3(0, 0, -(int)orientation.Direction * 90);
             transform.localScale = new Vector3(transform.localScale.x * flipx, transform.localScale.y, 0);
 
+            _start = start;
+            _end = end;
             _orientation = orientation;
             _oriented = true;
         }
+
+        public bool TryAddResourceSystem(ResourceSystemID resourceSystem) =>
+            ResourceComponent.TryAddResourceSystem(resourceSystem);
 
         public void SetShip(Spaceship ship)
         {

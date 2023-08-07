@@ -34,7 +34,7 @@ namespace MSEngine.UI
 
         private void GeneratePart(ObjectConfig config)
         {
-            GameObject obj = Instantiate(DataLoader.GetUIPrefab(UIPrefabAssigment.PartButton), transform.GetChild(1)) as GameObject;
+            GameObject obj = Instantiate(DataLoader.GetUIPrefab(UIPrefabAssignment.PartButton), transform.GetChild(1)) as GameObject;
             obj.GetComponent<Image>().sprite = config.Sprite;
             obj.GetComponent<UniversalButton>().Config = config;
         }

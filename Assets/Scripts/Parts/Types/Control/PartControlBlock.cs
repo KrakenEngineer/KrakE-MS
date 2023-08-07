@@ -3,9 +3,10 @@ using MSEngine.PlayerInput;
 
 namespace MSEngine.Spaceships.Parts
 {
-    public class PartControlBlock : MonoBehaviour
+    public class PartControlBlock : MonoBehaviour, IShipPartBehaviour
     {
         public Player CurrentPlayer { get; private set; }
+        public ShipPart PartComponent => GetComponent<ShipPart>();
 
         void Update()
         {
@@ -22,6 +23,17 @@ namespace MSEngine.Spaceships.Parts
             }
 
             else return false;
+        }
+
+        public bool TryRemovePlayer()
+        {
+            if (CurrentPlayer != null)
+            {
+                CurrentPlayer = null;
+                return true;
+            }
+
+            return false;
         }
     }
 }

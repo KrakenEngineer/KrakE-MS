@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using MSEngine.Utility;
 using UnityEngine;
 
 namespace MSEngine.Spaceships.Parts
@@ -8,7 +10,7 @@ namespace MSEngine.Spaceships.Parts
         [SerializeField] private float _torque;
         public float Torque => _torque;
 
-        public void Initialize(float torque, float rotation)
+        public void Initialize(float torque, List<Resource> consumption, List<Resource> output)
         {
             if (_initialized)
                 throw new System.Exception("Can't initialize this gyro because it is initialized");
@@ -17,6 +19,8 @@ namespace MSEngine.Spaceships.Parts
 
             _torque = torque;
             _relativeDirection = DefaultDirection;
+            _consumption = new List<Resource>(consumption);
+            _output = new List<Resource>(output);
             _initialized = true;
         }
 

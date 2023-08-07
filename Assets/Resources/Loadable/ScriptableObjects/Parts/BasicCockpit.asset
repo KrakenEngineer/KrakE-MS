@@ -25,10 +25,12 @@ MonoBehaviour:
     Radius: 0
   MainExtension:
     Config: {fileID: 0}
-    Type: 4
+    Type: 5
     Category: 0
     StartHealth: 10
     ImpactHealth: 5
+    Consumption: []
+    Output: []
     MinThurst: 0
     MaxThurst: 0
     ExhaustLengthMultiplier: 0
@@ -37,7 +39,15 @@ MonoBehaviour:
     MinTorque: 0
     MaxTorque: 0
     CurrentTorque: 0
+    Indicator:
+      _mode: 0
+      _defaultColor: {r: 0, g: 0, b: 0, a: 0}
+      _startPoint: {x: 0, y: 0, z: 0}
+      _startScale: {x: 0, y: 0, z: 0}
     StartItem:
+      Amount: 0
+      ID: 
+    StartItemF:
       Amount: 0
       ID: 
     Stack: 0
@@ -47,6 +57,8 @@ MonoBehaviour:
     Category: 0
     StartHealth: 0
     ImpactHealth: 0
+    Consumption: []
+    Output: []
     MinThurst: 0
     MaxThurst: 0
     ExhaustLengthMultiplier: 0
@@ -55,15 +67,27 @@ MonoBehaviour:
     MinTorque: 0
     MaxTorque: 0
     CurrentTorque: 0
+    Indicator:
+      _mode: 0
+      _defaultColor: {r: 0, g: 0, b: 0, a: 0}
+      _startPoint: {x: 0, y: 0, z: 0}
+      _startScale: {x: 0, y: 0, z: 0}
     StartItem:
+      Amount: 0
+      ID: 
+    StartItemF:
       Amount: 0
       ID: 
     Stack: 0
   - Config: {fileID: 11400000}
-    Type: 3
+    Type: 4
     Category: 0
     StartHealth: 0
     ImpactHealth: 0
+    Consumption:
+    - Amount: 0.1
+      ID: ElectricCharge:Item
+    Output: []
     MinThurst: 0
     MaxThurst: 0
     ExhaustLengthMultiplier: 0
@@ -72,15 +96,25 @@ MonoBehaviour:
     MinTorque: 10
     MaxTorque: 40
     CurrentTorque: 20
+    Indicator:
+      _mode: 0
+      _defaultColor: {r: 0, g: 0, b: 0, a: 0}
+      _startPoint: {x: 0, y: 0, z: 0}
+      _startScale: {x: 0, y: 0, z: 0}
     StartItem:
+      Amount: 0
+      ID: 
+    StartItemF:
       Amount: 0
       ID: 
     Stack: 0
   - Config: {fileID: 11400000}
-    Type: 5
+    Type: 6
     Category: 0
     StartHealth: 0
     ImpactHealth: 0
+    Consumption: []
+    Output: []
     MinThurst: 0
     MaxThurst: 0
     ExhaustLengthMultiplier: 0
@@ -89,7 +123,15 @@ MonoBehaviour:
     MinTorque: 0
     MaxTorque: 0
     CurrentTorque: 0
+    Indicator:
+      _mode: 0
+      _defaultColor: {r: 0, g: 0, b: 0, a: 0}
+      _startPoint: {x: 0, y: 0, z: 0}
+      _startScale: {x: 0, y: 0, z: 0}
     StartItem:
       Amount: 0
       ID: 
+    StartItemF:
+      Amount: 10
+      ID: ElectricCharge:Item
     Stack: 10

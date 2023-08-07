@@ -27,7 +27,7 @@ namespace MSEngine.Scenes.Editors
         protected override void Awake()
         {
             base.Awake();
-            Object panelPrefab = DataLoader.GetUIPrefab(UIPrefabAssigment.Panel);
+            Object panelPrefab = DataLoader.GetUIPrefab(UIPrefabAssignment.Panel);
             PartPanel panel = (Instantiate(panelPrefab, transform) as GameObject).GetComponent<PartPanel>();
 
             foreach (var key in Constants.PartCategories)
@@ -83,7 +83,7 @@ namespace MSEngine.Scenes.Editors
 
             var configCopy = config.Copy();
             Transform part = configCopy.MakeObject().transform;
-            part.GetComponent<ShipPart>().Orient(_ui.Orientation);
+            part.GetComponent<ShipPart>().Orient(Vector2Int.zero, Vector2Int.zero, _ui.Orientation);
 
             return part.gameObject;
         }

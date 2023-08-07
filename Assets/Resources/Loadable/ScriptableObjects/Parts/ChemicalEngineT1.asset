@@ -25,10 +25,12 @@ MonoBehaviour:
     Radius: 0
   MainExtension:
     Config: {fileID: 0}
-    Type: 4
+    Type: 5
     Category: 2
     StartHealth: 10
     ImpactHealth: 4
+    Consumption: []
+    Output: []
     MinThurst: 0
     MaxThurst: 0
     ExhaustLengthMultiplier: 0
@@ -37,7 +39,15 @@ MonoBehaviour:
     MinTorque: 0
     MaxTorque: 0
     CurrentTorque: 0
+    Indicator:
+      _mode: 0
+      _defaultColor: {r: 0, g: 0, b: 0, a: 0}
+      _startPoint: {x: 0, y: 0, z: 0}
+      _startScale: {x: 0, y: 0, z: 0}
     StartItem:
+      Amount: 0
+      ID: 
+    StartItemF:
       Amount: 0
       ID: 
     Stack: 0
@@ -47,15 +57,27 @@ MonoBehaviour:
     Category: 2
     StartHealth: 0
     ImpactHealth: 0
+    Consumption:
+    - Amount: 0.8
+      ID: Fuel:Item
+    Output: []
     MinThurst: 10
     MaxThurst: 75
     ExhaustLengthMultiplier: 2
     CurrentThurst: 30
-    ThurstPosition: {x: 0, y: 0}
+    ThurstPosition: {x: 0.5, y: 0.5}
     MinTorque: 0
     MaxTorque: 0
     CurrentTorque: 0
+    Indicator:
+      _mode: 0
+      _defaultColor: {r: 0, g: 0, b: 0, a: 0}
+      _startPoint: {x: 0, y: 0, z: 0}
+      _startScale: {x: 0, y: 0, z: 0}
     StartItem:
+      Amount: 0
+      ID: 
+    StartItemF:
       Amount: 0
       ID: 
     Stack: 0

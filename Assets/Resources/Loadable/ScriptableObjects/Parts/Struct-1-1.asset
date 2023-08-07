@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b74f874a04879e941aa56342f9885f49, type: 3}
-  m_Name: FuelTankT1
+  m_Name: Struct-1-1
   m_EditorClassIdentifier: 
-  Name: FuelTankT1
+  Name: Struct-1-1
   Description: 
   CenterOfMass:
     _position: {x: 0.5, y: 0.5}
-    _mass: 1
-  Sprite: {fileID: 21300000, guid: ca92dbad077096d4095b3058bbd6e548, type: 3}
+    _mass: 0.1
+  Sprite: {fileID: 21300000, guid: 3e2a726d0ef682943a5d1ad705fa8b52, type: 3}
   Collider:
     Config: {fileID: 0}
     Type: 1
@@ -25,10 +25,10 @@ MonoBehaviour:
     Radius: 0
   MainExtension:
     Config: {fileID: 0}
-    Type: 0
-    Category: 1
-    StartHealth: 8
-    ImpactHealth: 3
+    Type: 5
+    Category: 4
+    StartHealth: 10
+    ImpactHealth: 2
     Consumption: []
     Output: []
     MinThurst: 0
@@ -51,31 +51,4 @@ MonoBehaviour:
       Amount: 0
       ID: 
     Stack: 0
-  Extensions:
-  - Config: {fileID: 11400000}
-    Type: 6
-    Category: 1
-    StartHealth: 0
-    ImpactHealth: 3
-    Consumption: []
-    Output: []
-    MinThurst: 0
-    MaxThurst: 0
-    ExhaustLengthMultiplier: 0
-    CurrentThurst: 0
-    ThurstPosition: {x: 0, y: 0}
-    MinTorque: 0
-    MaxTorque: 0
-    CurrentTorque: 0
-    Indicator:
-      _mode: 1
-      _defaultColor: {r: 0.54901963, g: 0.74509805, b: 0.9411765, a: 1}
-      _startPoint: {x: 0, y: 0, z: 0}
-      _startScale: {x: 0.7, y: 0.7, z: 0}
-    StartItem:
-      Amount: 0
-      ID: 
-    StartItemF:
-      Amount: 100
-      ID: Fuel:Item
-    Stack: 100
+  Extensions: []

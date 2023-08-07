@@ -8,6 +8,7 @@ using MSEngine.Spaceships;
 using MSEngine.Spaceships.Parts;
 using MSEngine.Saves.Configs;
 using MSEngine.Saves.Spaceships;
+using MSEngine.Utility;
 #endregion
 
 namespace MSEngine
@@ -17,7 +18,8 @@ namespace MSEngine
         public static InputPreset CurrentInputPreset;
 
         public static Dictionary<string, InputPreset> AllInputPresets;
-        public static Dictionary<UIPrefabAssigment, UnityEngine.Object> UIPrefabs;
+        public static Dictionary<string, Sprite> Sprites;
+        public static Dictionary<UIPrefabAssignment, UnityEngine.Object> UIPrefabs;
         public static Dictionary<PartCategory, PartCategoryData> PartCategories;
         public static Dictionary<string, Item> Items;
 
@@ -25,7 +27,8 @@ namespace MSEngine
         {
             CurrentInputPreset = null;
             AllInputPresets = new Dictionary<string, InputPreset>();
-            UIPrefabs = new Dictionary<UIPrefabAssigment, UnityEngine.Object>();
+            Sprites = new Dictionary<string, Sprite>();
+            UIPrefabs = new Dictionary<UIPrefabAssignment, UnityEngine.Object>();
             PartCategories = new Dictionary<PartCategory, PartCategoryData>();
             Items = new Dictionary<string, Item>();
         }
@@ -33,6 +36,7 @@ namespace MSEngine
         public static void LoadAll()
         {
             LoadInputPresets();
+            LoadSprites();
             LoadUIPrefabs();
             LoadPartCategories();
             LoadItems();
@@ -44,6 +48,14 @@ namespace MSEngine
 
             foreach (var preset in presets)
                 TryAddInputPreset(preset);
+        }
+
+        private static void LoadSprites()
+        {
+            Sprite[] sprites = Resources.LoadAll<Sprite>(Constants.LoadPaths[PathType.Sprites]);
+
+            foreach (var sprite in sprites)
+                Sprites.Add(sprite.name, sprite);
         }
 
         private static void LoadUIPrefabs()
@@ -116,7 +128,12 @@ namespace MSEngine
             return Input.GetKeyDown(CurrentInputPreset.FindKey(assigment));
         }
 
-        public static UnityEngine.Object GetUIPrefab(UIPrefabAssigment assigment)
+        public static Sprite GetSprite(string id)
+        {
+            return Sprites[id];
+        }
+
+        public static UnityEngine.Object GetUIPrefab(UIPrefabAssignment assigment)
         {
             return UIPrefabs[assigment];
         }
@@ -149,8 +166,9 @@ namespace MSEngine
 
         public static float GetDistance(Vector2 start, Vector2 line)
         {
-            if (line.x == 0) return start.x;
-            if (line.y == 0) return start.y;
+            if (line.x == 0 && line.y == 0) return 0;
+            if (line.x == 0) return -start.x;
+            if (line.y == 0) return -start.y;
 
             Vector2 function = new Vector2(line.y/line.x, start.y - start.x*line.y/line.x);
             Vector2 functionZeros = new Vector2(-function.y / function.x, function.y);
@@ -196,7 +214,7 @@ namespace MSEngine
             Vector3 output = new Vector3(x, y, z);
             return output;
         }
-        
+
         public static float GetTorque(Vector2 position, Vector2 force) =>
             force.magnitude * GetDistance(position, force);
     }
@@ -209,6 +227,7 @@ namespace MSEngine
         public static readonly Dictionary<PathType, string> LoadPaths = new Dictionary<PathType, string>
         {
             { PathType.InputPresets, "Loadable/ScriptableObjects/InputPresets" },
+            { PathType.Sprites, "Loadable/Sprites" },
             { PathType.UIPrefabs, "Loadable/Prefabs/UI" },
             { PathType.PartCategories, "Loadable/ScriptableObjects/PartCategories" },
             { PathType.PartConfigs,"Loadable/ScriptableObjects/Parts" },
@@ -216,22 +235,24 @@ namespace MSEngine
             { PathType.Items,"Loadable/ScriptableObjects/Items" }
         };
 
-        public static readonly Dictionary<string, UIPrefabAssigment> StringToUIPrefabAssigment = new Dictionary<string, UIPrefabAssigment>
+        public static readonly Dictionary<string, UIPrefabAssignment> StringToUIPrefabAssigment = new Dictionary<string, UIPrefabAssignment>
         {
-            { "PartButton", UIPrefabAssigment.PartButton },
-            { "Panel", UIPrefabAssigment.Panel },
-            { "Control", UIPrefabAssigment.Control },
-            { "Storages", UIPrefabAssigment.Storages },
-            { "Engines", UIPrefabAssigment.Engines },
-            { "Launch", UIPrefabAssigment.Launch },
-            { "ToEditor", UIPrefabAssigment.ToEditor },
+            { "PartButton", UIPrefabAssignment.PartButton },
+            { "Panel", UIPrefabAssignment.Panel },
+            { "Control", UIPrefabAssignment.Control },
+            { "Storages", UIPrefabAssignment.Storages },
+            { "Engines", UIPrefabAssignment.Engines },
+            { "Generators", UIPrefabAssignment.Generators },
+            { "Struct", UIPrefabAssignment.Struct },
+            { "Launch", UIPrefabAssignment.Launch },
+            { "ToEditor", UIPrefabAssignment.ToEditor }
         };
 
-        public static readonly List<UIPrefabAssigment> PartCategories = new List<UIPrefabAssigment>
+        public static readonly List<UIPrefabAssignment> PartCategories = new List<UIPrefabAssignment>
         {
-            UIPrefabAssigment.Control,
-            UIPrefabAssigment.Storages,
-            UIPrefabAssigment.Engines
+            UIPrefabAssignment.Control,
+            UIPrefabAssignment.Engines,
+            UIPrefabAssignment.Struct
         };
     }
 
@@ -247,6 +268,7 @@ namespace MSEngine
     {
         None,
         InputPresets,
+        Sprites,
         UIPrefabs,
         PartCategories,
         PartConfigs,
@@ -255,13 +277,15 @@ namespace MSEngine
         Count
     }
 
-    public enum UIPrefabAssigment
+    public enum UIPrefabAssignment
     {
         PartButton,
         Panel,
         Control,
         Storages,
         Engines,
+        Generators,
+        Struct,
         Launch,
         ToEditor,
         Count
@@ -323,19 +347,29 @@ namespace MSEngine
 
             public static void FillControlBlock(PartControlBlock part, ConfigExtension ext) { }
 
-            public static void FillStorage(PartStorage part, ConfigExtension ext)
+            public static void FillStorage(CompositeStoragePart part, ConfigExtension ext)
             {
-                part.Initialize(ext.Stack, ext.StartItem);
+                part.Initialize(ext.Stack, ext.StartItemF, ext.Indicator);
+            }
+
+            public static void FillSolidStorage(PartSolidStorage part, ConfigExtension ext)
+            {
+                part.Initialize(ext.Stack, ext.StartItem, ext.Indicator);
             }
 
             public static void FillEngine(PartEngine part, ConfigExtension ext)
             {
-                part.Initialize(ext.CurrentThurst, part.transform.eulerAngles.z);
+                part.Initialize(ext.CurrentThurst, ext.ExhaustLengthMultiplier, ext.ThurstPosition, ext.Consumption, ext.Output);
+            }
+
+            public static void FillGenerator(PartGenerator part, ConfigExtension ext)
+            {
+                part.Initialize(ext.Consumption, ext.Output);
             }
 
             public static void FillGyro(PartGyro part, ConfigExtension ext)
             {
-                part.Initialize(ext.CurrentTorque, part.transform.eulerAngles.z);
+                part.Initialize(ext.CurrentTorque, ext.Consumption, ext.Output);
             }
 
             public static void FillRectCollider(BoxCollider2D collider, ColliderData data)
@@ -362,9 +396,11 @@ namespace MSEngine
             {
                 { ConfigExtensionType.ControlBlock, typeof(PartControlBlock) },
                 { ConfigExtensionType.Engine, typeof(PartEngine) },
+                { ConfigExtensionType.Generator, typeof(PartGenerator) },
                 { ConfigExtensionType.Gyro, typeof(PartGyro) },
                 { ConfigExtensionType.Part, typeof(ShipPart) },
-                { ConfigExtensionType.Storage, typeof(PartStorage) }
+                { ConfigExtensionType.Storage, typeof(CompositeStoragePart) },
+                { ConfigExtensionType.SolidStorage, typeof(PartSolidStorage) }
             };
 
             public static readonly Dictionary<ConfigColliderType, Type> ColliderTypeToCollider = new Dictionary<ConfigColliderType, Type>
@@ -377,9 +413,11 @@ namespace MSEngine
             {
                 { typeof(PartControlBlock), typeof(ComponentFiller).GetMethod("FillControlBlock") },
                 { typeof(PartEngine), typeof(ComponentFiller).GetMethod("FillEngine") },
+                { typeof(PartGenerator), typeof(ComponentFiller).GetMethod("FillGenerator") },
                 { typeof(PartGyro), typeof(ComponentFiller).GetMethod("FillGyro") },
                 { typeof(ShipPart), typeof(ComponentFiller).GetMethod("FillShipPart") },
-                { typeof(PartStorage), typeof(ComponentFiller).GetMethod("FillStorage") },
+                { typeof(CompositeStoragePart), typeof(ComponentFiller).GetMethod("FillStorage") },
+                { typeof(PartSolidStorage), typeof(ComponentFiller).GetMethod("FillSolidStorage") },
                 { typeof(BoxCollider2D), typeof(ComponentFiller).GetMethod("FillRectCollider") }
             };
         }
@@ -530,19 +568,27 @@ namespace MSEngine
         }
 
         [RequireComponent(typeof(ShipPart))]
-        public abstract class MovingPart : MonoBehaviour
+        public abstract class MovingPart : ResourceRelated
         {
+            [SerializeField] protected bool _initialized;
             [SerializeField] protected PartDirection _relativeDirection;
-            public Vector2 MovementPoint { get; private set; }
 
-            protected bool _initialized;
+            [SerializeField] protected List<Resource> _consumption;
+            [SerializeField] protected List<Resource> _output;
 
             public readonly PartDirection DefaultDirection = PartDirection.Up;
+
+            public Vector2 MovementPoint { get; protected set; }
+            public override ShipPart PartComponent => GetComponent<ShipPart>();
+
+            public override List<Resource> Consumption => new List<Resource>(_consumption);
+            public override List<Resource> Output => new List<Resource>(_output);
+            public override List<string> RelatedTo => GetRelatedTo();
+
             public abstract float GetTorque(bool clockwise);
             public abstract Vector2 GetForce();
             public PartDirection Direction =>
-                StaticMethods.SumDirections(ShipPart.Orientation.Direction, _relativeDirection);
-            public ShipPart ShipPart => GetComponent<ShipPart>();
+                StaticMethods.SumDirections(PartComponent.Orientation.Direction, _relativeDirection);
 
             public Vector3 GetMovement(CenterOfMass centerOfMass, List<KeyAssignment> keys)
             {
@@ -553,7 +599,8 @@ namespace MSEngine
                 if (keys.Contains(ShipConstants.DirectionToKey[Direction]))
                 {
                     Vector2 force = GetForce();
-                    Vector2 forcePosition = ShipPart.Start - centerOfMass.Position;
+                    Vector2 forcePosition =
+                        PartComponent.Start - PartComponent.Ship.Start + MovementPoint - centerOfMass.Position;
                     float torque = StaticMethods.GetTorque(forcePosition, force);
                     movement += new Vector3(force.x, force.y, torque);
                 }
@@ -562,6 +609,13 @@ namespace MSEngine
                 if (rotateRight && !rotateLeft) movement += new Vector3(0, 0, GetTorque(true));
 
                 return movement;
+            }
+
+            protected List<string> GetRelatedTo()
+            {
+                var output = new List<Resource>(_consumption);
+                output.AddRange(_output);
+                return output.Select(r => r.ID).Distinct().ToList();
             }
         }
 
@@ -652,16 +706,44 @@ namespace MSEngine
                 return output;
             }
 
-            public static CenterOfMass Average(List<ShipPart> ship)
+            public static CenterOfMass Average(Vector2 start, List<ShipPart> ship)
             {
                 CenterOfMass output = zero;
 
                 foreach (var item in ship)
-                    output += item.CenterOfMass;
+                    output += item.CenterOfMass + new CenterOfMass(item.Start - start, 0);
 
                 output._position /= output._mass;
                 return output;
             }
+        }
+
+        [Serializable]
+        public struct ResourceSystemID
+        {
+            [SerializeField] private int _number;
+            [SerializeField] private string _resource;
+
+            public ResourceSystemID(int number, string resource)
+            {
+                if (number < -1)
+                    throw new Exception("Invalid number of ResourceSystemID");
+                if (number == -1 && resource != Resource.Void.ID)
+                    throw new Exception("Invalid resource for 'none' resource system id");
+
+                _number = number;
+                _resource = resource;
+            }
+
+            public string resource => _resource;
+            public int number => _number;
+
+            public static ResourceSystemID None => new ResourceSystemID(-1, Resource.Void.ID);
+
+            public static bool operator == (ResourceSystemID left, ResourceSystemID right) =>
+                left._number == right._number && left._resource == right._resource;
+
+            public static bool operator != (ResourceSystemID left, ResourceSystemID right) => !(left == right);
         }
 
         [Serializable]

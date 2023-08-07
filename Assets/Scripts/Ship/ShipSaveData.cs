@@ -1,11 +1,11 @@
+
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 using System.Linq;
 #region Game engine usings
 using MSEngine.Saves.Configs;
-using MSEngine.Scenes.Editors;
 using MSEngine.Spaceships;
+using MSEngine.Utility;
 #endregion
 
 namespace MSEngine.Saves.Spaceships
@@ -18,6 +18,7 @@ namespace MSEngine.Saves.Spaceships
         public Vector2Int Start { get; private set; }
         public Vector2Int End { get; private set; }
 
+        private List<ResourceSystemID> _resourceSystems;
         private List<ShipComponentData> _components;
 
         public static ShipSaveData Save(string name, string description, List<ShipPart> parts)
@@ -27,6 +28,7 @@ namespace MSEngine.Saves.Spaceships
             data.Description = description;
 
             data._components = GenerateComponents(parts);
+            //data._resourceSystems = GenerateResourceSystems(parts).Keys.ToList();
             data.TryGetBounds(data._components, out Vector2Int start, out Vector2Int end);
 
             data.Start = start;
@@ -42,7 +44,7 @@ namespace MSEngine.Saves.Spaceships
 
             foreach (var component in _components)
             {
-                output.Add(component.Load(mode, Name, parent, out List<ShipPart> parts));
+                output.Add(component.Load(mode, Name, parent, out List<ShipPart> parts, _resourceSystems));
 
                 foreach (var part in parts)
                     partsOut.Add(part);
@@ -79,7 +81,7 @@ namespace MSEngine.Saves.Spaceships
 
         private static List<ShipComponentData> GenerateComponents(List<ShipPart> parts)
         {
-            List<PartGraph> components = new PartGraph(parts).Split();
+            List<PartGraph<ShipPart>> components = new PartGraph<ShipPart>(parts).Split();
             var output = new List<ShipComponentData>();
             foreach (var component in components)
                 if (component.PartsCount != 0)
@@ -87,6 +89,71 @@ namespace MSEngine.Saves.Spaceships
 
             return output;
         }
+
+        /*private static Dictionary<ResourceSystemID, List<ShipPart>> GenerateResourceSystems(List<ShipPart> parts)
+        {
+            List<ResourceRelated> _resourceRelatedBehaviours = new List<ResourceRelated>();
+            foreach (var part in parts)
+                _resourceRelatedBehaviours.AddRange(part.GetComponents<ResourceRelated>());
+
+            Dictionary<string, List<List<ResourceRelated>>> systemGroups = SplitResourceSystem(_resourceRelatedBehaviours);
+            var output = new Dictionary<ResourceSystemID, List<ShipPart>>();
+
+            foreach (var systemGroup in systemGroups)
+            {
+                for (int i = 0; i < systemGroup.Value.Count; i++)
+                {
+                    var resourceSystemKey = new ResourceSystemID(i, systemGroup.Key);
+                    List<ShipPart> partsList =
+                        systemGroup.Value[i].Select(component => component.PartComponent).Distinct().ToList();
+
+                    output.Add(resourceSystemKey, partsList);
+                    foreach (var part in partsList)
+                        part.TryAddResourceSystem(resourceSystemKey);
+                }
+            }
+
+            return output;
+        }
+
+        private static Dictionary<string, List<List<ResourceRelated>>> SplitResourceSystem(List<ResourceRelated> components)
+        {
+            List<string> IDs = GenerateIDList(components);
+            var output = new Dictionary<string, List<List<ResourceRelated>>>();
+
+            foreach (var id in IDs)
+            {
+                List<ResourceRelated> relatedToID =
+                    components.Where(component => component.RelatedTo.Contains(id)).ToList();
+                List<PartGraph<ResourceRelated>> grahpList = new PartGraph<ResourceRelated>(relatedToID).Split();
+                List<List<ResourceRelated>> systems = new List<List<ResourceRelated>>();
+
+                foreach (var partGraph in grahpList)
+                    systems.Add(partGraph.Parts);
+
+                output.Add(id, systems);
+            }
+
+            return output;
+        }
+
+        private static List<string> GenerateIDList(List<ResourceRelated> components)
+        {
+            List<string> IDs = new List<string>();
+
+            foreach (var component in components)
+            {
+                IDs.AddRange(component.Consumption.Select(item => item.ID));
+                IDs.AddRange(component.Output.Select(item => item.ID));
+
+                if (component is Storage<Resource> storage)
+                    IDs.Add(storage.GetContent().ID);
+                if (component is Storage<SolidResource> storageS)
+                    IDs.Add(storageS.GetContent().ID);
+            }
+
+            return IDs.Distinct().ToList();
+        }*/
     }
 
     internal sealed class ShipComponentData
@@ -97,13 +164,6 @@ namespace MSEngine.Saves.Spaceships
         private CenterOfMass _centerOfMass;
 
         private List<PartSaveData> _parts;
-
-        private static readonly Dictionary<ShipLoadMode, MethodInfo> LoadModes = new Dictionary<ShipLoadMode, MethodInfo>()
-    {
-        { ShipLoadMode.None, null },
-        { ShipLoadMode.Level, typeof(ShipComponentData).GetMethod("LoadToLevel") },
-        { ShipLoadMode.Editor, typeof(ShipComponentData).GetMethod("LoadToEditor") }
-    };
 
         public ShipComponentData()
         {
@@ -127,26 +187,40 @@ namespace MSEngine.Saves.Spaceships
             TryGetBounds(output._parts, out Vector2Int start, out Vector2Int end);
             output.Start = start;
             output.End = end;
-            output._centerOfMass = CenterOfMass.Average(ship);
+            output._centerOfMass = CenterOfMass.Average(start, ship);
 
             return output;
         }
 
-        public Spaceship Load(ShipLoadMode mode, string name, Transform parent, out List<ShipPart> parts)
+        public Spaceship Load(ShipLoadMode mode, string name, Transform parent, out List<ShipPart> parts, List<ResourceSystemID> resourceSystems)
         {
-            Spaceship ship = LoadModes[mode].Invoke(this, new object[] { name, parent }) as Spaceship;
-            parts = new List<ShipPart>(ship.Parts);
+            Spaceship ship;
+            switch (mode)
+            {
+                case ShipLoadMode.Editor:
+                    ship = LoadToEditor(name, parent);
+                    break;
+
+                case ShipLoadMode.Level:
+                    ship = LoadToLevel(name, parent, resourceSystems);
+                    break;
+
+                default:
+                    throw new System.Exception("Can't load ship without loading mode");
+            }
+
+            parts = ship.Parts;
             return ship;
         }
 
-        public Spaceship LoadToLevel(string name, Transform parent)
+        public Spaceship LoadToLevel(string name, Transform parent, List<ResourceSystemID> resourceSystems)
         {
             var ship = new GameObject(name);
             List<ShipPart> parts = PartSaveData.Load(_parts, ship.transform);
             ship.AddComponent<Rigidbody2D>();
 
             var cShip = ship.AddComponent<Spaceship>();
-            cShip.Initialize(0, new Vector2(Start.x, Start.y), End - Start, _centerOfMass, parent, parts);
+            cShip.Initialize(0, Start, End - Start, _centerOfMass, parent, parts, resourceSystems);
             cShip.ConfigueRigidbody(Vector2.zero, 0);
             foreach (var part in parts)
                 part.SetShip(cShip);
@@ -156,7 +230,7 @@ namespace MSEngine.Saves.Spaceships
 
         public Spaceship LoadToEditor(string name, Transform parent)
         {
-            Spaceship ship = new Spaceship(PartSaveData.Load(_parts, parent), End - Start);
+            Spaceship ship = new Spaceship(PartSaveData.Load(_parts, parent), new List<ResourceSystemID>(), End - Start);
             foreach (var part in ship.Parts) part.transform.position += part.GetExactScale() / 2;
             return ship;
         }
@@ -191,6 +265,7 @@ namespace MSEngine.Saves.Spaceships
     {
         public ObjectConfig Config { get; private set; }
         public PartTransform Transform { get; private set; }
+        public List<ResourceSystemID> ResourceSystems { get; private set; }
 
         public Vector2Int start => Transform.Start;
         public Vector2Int end => Transform.End;
@@ -201,6 +276,7 @@ namespace MSEngine.Saves.Spaceships
 
             data.Config = part.Config;
             data.Transform = PartTransform.Save(part);
+            data.ResourceSystems = part.ResourceSystems;
 
             return data;
         }
@@ -231,9 +307,11 @@ namespace MSEngine.Saves.Spaceships
 
         public ShipPart Load(Transform ship)
         {
-            var output = Config.MakeObject(ship);
-            Transform.Load(output.GetComponent<ShipPart>());
-            return output.GetComponent<ShipPart>();
+            ShipPart output = Config.MakeObject(ship).GetComponent<ShipPart>();
+            Transform.Load(output);
+            foreach (var system in ResourceSystems)
+                output.TryAddResourceSystem(system);
+            return output;
         }
 
         public struct PartTransform
@@ -258,46 +336,35 @@ namespace MSEngine.Saves.Spaceships
             public void Load(ShipPart part)
             {
                 part.transform.position = StaticMethods.Vector2IntToVector3((Start + End) / 2);
-                part.Orient(Orientation);
+                part.Orient(Start, End, Orientation);
             }
         }
     }
 
     //using ChatGPT
-    public class PartGraph
+    public class PartGraph<T> where T : MonoBehaviour, IShipPartBehaviour
     {
-        private List<ShipPart> _parts;
+        private List<T> _parts;
 
-        public PartGraph()
-        {
-            _parts = new List<ShipPart>();
-        }
-
-        public PartGraph(List<ShipPart> parts)
-        {
-            if (parts.Contains(null))
-                throw new System.Exception("List of parts for this graph contains null");
-
-            _parts = new List<ShipPart>(parts);
-        }
+        public PartGraph(List<T> parts) => _parts = parts.Where(part => part != null).ToList();
 
         public int PartsCount => _parts.Count;
-        public List<ShipPart> Parts => new List<ShipPart>(_parts);
+        public List<T> Parts => new List<T>(_parts);
 
-        public List<PartGraph> Split()
+        public List<PartGraph<T>> Split()
         {
-            var visited = new Dictionary<ShipPart, bool>();
-            var components = new List<PartGraph>();
+            var visited = new Dictionary<T, bool>();
+            var components = new List<PartGraph<T>>();
 
             foreach (var obj in _parts)
-                visited[obj] = false;
+                visited.Add(obj, false);
 
             foreach (var obj in _parts)
             {
                 if (!visited[obj])
                 {
-                    var comp = new PartGraph();
-                    DFS(obj, visited, comp);
+                    var comp = new PartGraph<T>(new List<T>());
+                    DFS(obj, visited.Keys.ToList(), visited, comp);
                     components.Add(comp);
                 }
             }
@@ -305,14 +372,15 @@ namespace MSEngine.Saves.Spaceships
             return components;
         }
 
-        public void DFS(ShipPart obj, Dictionary<ShipPart, bool> visited, PartGraph component)
+        public void DFS(T obj, List<T> keys, Dictionary<T, bool> visited, PartGraph<T> component)
         {
             visited[obj] = true;
             component._parts.Add(obj);
 
-            foreach (var neighbor in obj.Neighbors)
-                if (!visited[neighbor])
-                    DFS(neighbor, visited, component);
+            foreach (var neighbor in obj.PartComponent.Neighbors)
+                if (keys.Where(c => c.PartComponent == neighbor).Count() >= 1)
+                    if (!visited[neighbor.GetComponent<T>()])
+                        DFS(neighbor.GetComponent<T>(), keys, visited, component);
         }
     }
 

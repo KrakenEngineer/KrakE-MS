@@ -58,24 +58,29 @@
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\2022.3.0f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\Parts\Types\Factories\CompositeStoragePart.cs" />
     <Compile Include="Assets\Scripts\Parts\Types\Control\PartControlBlock.cs" />
     <Compile Include="Assets\Scripts\Items\Item.cs" />
     <Compile Include="Assets\Scripts\Editors\ShipEditor\ShipEditor.cs" />
+    <Compile Include="Assets\Scripts\UI\Indicator.cs" />
+    <Compile Include="Assets\Scripts\Parts\Types\Factories\PartSolidStorage.cs" />
     <Compile Include="Assets\Scripts\UI\CameraMovement.cs" />
     <Compile Include="Assets\Scripts\Editors\ShipEditor\PartPanel.cs" />
+    <Compile Include="Assets\Scripts\Parts\Types\Factories\PartGenerator.cs" />
     <Compile Include="Assets\Scripts\UI\UniversalButton.cs" />
     <Compile Include="Assets\Scripts\Ship\ShipSaveData.cs" />
-    <Compile Include="Assets\Scripts\Items\ResourceAmount.cs" />
+    <Compile Include="Assets\Scripts\Ship\Interfaces.cs" />
     <Compile Include="Assets\Scripts\GameEngine\InputPresets.cs" />
     <Compile Include="Assets\Scripts\Parts\PartCategories.cs" />
+    <Compile Include="Assets\Scripts\Parts\Types\Factories\ResourceComponent.cs" />
     <Compile Include="Assets\Scripts\Parts\Types\Movement\PartEngine.cs" />
     <Compile Include="Assets\Scripts\Ship\Spaceship.cs" />
     <Compile Include="Assets\Scripts\Parts\Types\Movement\PartGyro.cs" />
     <Compile Include="Assets\Scripts\Level\LevelSaveData.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Configs.cs" />
+    <Compile Include="Assets\Scripts\Items\Resource.cs" />
     <Compile Include="Assets\Scripts\Ship\ShipPart.cs" />
     <Compile Include="Assets\Scripts\GameEngine\MSEngine.cs" />
-    <Compile Include="Assets\Scripts\Parts\Types\Factories\PartStorage.cs" />
     <Compile Include="Assets\Scripts\Level\Level.cs" />
     <Compile Include="Assets\Scripts\GameEngine\Player.cs" />
     <Compile Include="Assets\Scripts\Level\LevelEditorObject.cs" />

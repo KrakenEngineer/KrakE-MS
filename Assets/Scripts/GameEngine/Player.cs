@@ -7,6 +7,7 @@ namespace MSEngine.PlayerInput
     public class Player : MonoBehaviour
     {
         private Camera Camera;
+        private PartControlBlock _currentControlBlock;
         private Vector2 _mousePosition => Camera.ScreenToWorldPoint(Input.mousePosition);
 
         private void Start()
@@ -21,8 +22,17 @@ namespace MSEngine.PlayerInput
                 RaycastHit2D hit = Physics2D.Raycast(_mousePosition, Vector2.zero);
 
                 if (hit.collider != null)
+                {
                     if (hit.collider.gameObject.TryGetComponent(out PartControlBlock controlBlock))
-                        controlBlock.TrySetPlayer(this);
+                    {
+                        if (controlBlock.TrySetPlayer(this))
+                        {
+                            if (_currentControlBlock != null)
+                                _currentControlBlock.TryRemovePlayer();
+                            _currentControlBlock = controlBlock;
+                        }
+                    }
+                }
             }
         }
 

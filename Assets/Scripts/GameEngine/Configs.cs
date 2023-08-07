@@ -3,6 +3,7 @@ using UnityEngine;
 using System;
 using MSEngine.Utility;
 using MSEngine.Spaceships;
+using MSEngine.UI;
 
 namespace MSEngine.Saves.Configs
 {
@@ -97,6 +98,9 @@ namespace MSEngine.Saves.Configs
             foreach (var extension in Extensions)
                 AddExtension(obj, extension);
 
+            if (obj.TryGetComponent(out ResourceComponent c))
+                c.GenerateCTRS(obj.GetComponents<ResourceRelated>());
+
             return obj;
         }
 
@@ -124,6 +128,9 @@ namespace MSEngine.Saves.Configs
         public PartCategory Category;
         public int StartHealth;
         public int ImpactHealth;
+        //IResourceRelated
+        public List<Resource> Consumption;
+        public List<Resource> Output;
         //Engine
         public float MinThurst;
         public float MaxThurst;
@@ -135,7 +142,9 @@ namespace MSEngine.Saves.Configs
         public float MaxTorque;
         public float CurrentTorque;
         //Storage
-        public ResourceAmount StartItem;
+        public IndicatorSettings Indicator;
+        public SolidResource StartItem;
+        public Resource StartItemF;
         public int Stack;
 
         public ConfigExtension() { }
@@ -149,6 +158,8 @@ namespace MSEngine.Saves.Configs
 
             output.StartHealth = StartHealth;
             output.ImpactHealth = ImpactHealth;
+            output.Consumption = Consumption;
+            output.Output = Output;
 
             output.MinThurst = MinThurst;
             output.MaxThurst = MaxThurst;
@@ -160,7 +171,9 @@ namespace MSEngine.Saves.Configs
             output.MaxTorque = MaxTorque;
             output.CurrentTorque = CurrentTorque;
 
+            output.Indicator = Indicator;
             output.StartItem = StartItem;
+            output.StartItemF = StartItemF;
             output.Stack = Stack;
             return output;
         }
@@ -195,9 +208,11 @@ namespace MSEngine.Saves.Configs
         None,
         ControlBlock,
         Engine,
+        Generator,
         Gyro,
         Part,
         Storage,
+        SolidStorage,
         Count
     }
 
